@@ -7,8 +7,8 @@ from subprocess import *
 import math
 import os
 #TODO: 
-# modify script to display on tree the number 
-# a substitution occurs x number of times  
+# stop double counting of substitutions that occured
+#
 #
 
 #function calls ruby script in local environment and returns
