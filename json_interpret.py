@@ -1,7 +1,7 @@
 import json
 import sys
 import re
-from Bio.Align.Applications import MuscleCommandline
+#from Bio.Align.Applications import MuscleCommandline
 import collections
 from subprocess import *
 import math
@@ -117,6 +117,9 @@ def hxb2_amino_converter(nuc_num, hxb2_start, hxb2_sequence):
     #raw_input('This is the hxb2_sequence: ' + str(hxb2_sequence)) 
     #raw_input('This is the hxb2_start before the while loop: ' + str(hxb2_start))
     indx = 0 #once this equals the nuc number than the nucleotide in the hxb2_sequence has been found
+    #print 'This is line 120' 
+    #print hxb2_start
+    #raw_input(type(hxb2_start))
     hxb2_num = int(hxb2_start) - 1 #first index will be the begining of where the sequence aligns to  
     while int(nuc_num) > indx: #loop until indexer is greater than zero
 
@@ -146,14 +149,14 @@ def co_occur_dict_gen(dict):
     #store the values of current key in an array                                                                                                     
         values = dict[ks[i]]
         #raw_input(values)                                                                                                                            
-        print("this is the array in the dictionary")
-        raw_input(dict[ks[i]])
+        #print("this is the array in the dictionary")
+        #raw_input(dict[ks[i]])
         del dict[ks[i]]
-        raw_input("dict value erased here: " )
-        print dict
+        #raw_input("dict value erased here: " )
+        #print dict
         #print values              
         for j in range(len(values)):
-            raw_input("This is the current array element im on: " +  values[j])
+            #raw_input("This is the current array element im on: " +  values[j])
             for (key, items) in dict.items():
                 if values[j] in items:
                     # neither key are in the co-occuring dict
@@ -162,7 +165,7 @@ def co_occur_dict_gen(dict):
                         multi_subs_dict[ks[i]] = [values[j]]
                         # both keys are already in co-occuring dict                                                                                   
                     elif key in multi_subs_dict and ks[i] in multi_subs_dict:
-                        raw_input(multi_subs_dict[ks[i]])
+                        #raw_input(multi_subs_dict[ks[i]])
                     #if the co occuring value is already in, then do nothing but
                 #if it is not then add it to key/ks[i] array of values                                                                             
                         if values[j] not in multi_subs_dict[ks[i]]:
@@ -175,7 +178,7 @@ def co_occur_dict_gen(dict):
                         if values[j] not in multi_subs_dict[ks[i]]: #chekck if the value                                                          
                             multi_subs_dict[ks[i]].append(values[j])
                     elif key in multi_subs_dict and ks[i] not in multi_subs_dict:
-                        multi_subs[ks[i]] = [values[j]]
+                        multi_subs_dict[ks[i]] = [values[j]]
                         if values[j] not in multi_subs_dict[key]: #check if the value is already stored inside the co-occuring key value array      
                             multi_subs_dict[key].append(values[j])
                 else:
@@ -183,6 +186,7 @@ def co_occur_dict_gen(dict):
                     pass
         #raw_input(multi_subs_dict)
         dict[ks[i]] = values
+    #raw_input(multi_subs_dict)
     return multi_subs_dict
 
 def find_changes(ref_codon, sub_codon):
@@ -198,6 +202,8 @@ def find_changes(ref_codon, sub_codon):
 
 #TODO: function to handle if there are insertions in the hxb2 site that are at sergei's reported site
 if __name__ == "__main__":
+    #os.system('module load muscle')
+    
     dir = sys.argv[1].split('.')[0]
     #raw_input('this is dir: ' + str(dir) + 'this is dir\'s type' + str(type(dir)) )
     os.system('mkdir ' + dir)
@@ -286,27 +292,37 @@ if __name__ == "__main__":
                 #find the nucleotide associated with this position and pass it to the hxb2 number finder
                 #print arr_hxb2_seq_range[5]
                 nuc_number = find_nucleotide(int(site), node_seq)
+                #raw_input('This is the var nuc_number: ' + str(nuc_number))
+                #print('This is the arr_hxb2_seq_range var: ')
+                #raw_input(arr_hxb2_seq_range)
                 hxb2_site = hxb2_amino_converter(nuc_number, arr_hxb2_seq_range[0], arr_hxb2_seq_range[5])
                 if int(hxb2_site) == -10000:
                     errors_log.write(my_sub_nodes[num_nodes] +  ref + '\t\t\t' + sub + '\t\t\t' + "HXB2 site could not be found" + arr_hxb2_seq_range[2] + '\n')
                 else:
-                    subs_all_f.write(my_sub_nodes[num_nodes] + '\t' + ref + '\t\t\t' + sub + '\t\t\t' + hxb2_site + '\t\t\t' + arr_hxb2_seq_range[2] + '\n'\
-)
-
+                    subs_all_f.write(my_sub_nodes[num_nodes] + '\t' + ref + '\t\t\t' + sub + '\t\t\t' + hxb2_site + '\t\t\t' + arr_hxb2_seq_range[2] + '\n')
+                    if my_sub_nodes[num_nodes] not in string_dict_nodes:
+                        string_dict_nodes[my_sub_nodes[num_nodes]] = [ref + hxb2_site + sub + '_']
+                    else:
+                        string_dict_nodes[my_sub_nodes[num_nodes]].append(ref + hxb2_site + sub + '_')
                 #raw_input('This is the final nucleotide site' + str(hxb2_site))
-                #adds new node to global dictionary
-                if my_sub_nodes[num_nodes] not in string_dict_nodes:
-                    string_dict_nodes[my_sub_nodes[num_nodes]] = ref + hxb2_site + sub + '_'
-                #adds characters to existing values
-                else:
-                    string_dict_nodes[my_sub_nodes[num_nodes]].append(ref + hxb2_site + sub + '_')
+#                if hxb2_site != -10000:
+                    #adds new node to global dictionary
+#                    if my_sub_nodes[num_nodes] not in string_dict_nodes:
+#                        string_dict_nodes[my_sub_nodes[num_nodes]] = [ref + hxb2_site + sub + ' ']
+                    #adds characters to existing values
+#                    else:
+#                    print 'Inside else condition so that means that a value should be appended to an existing key!'
+#                    print my_sub_nodes[num_nodes]
+
+#                        string_dict_nodes[my_sub_nodes[num_nodes]].append(ref + hxb2_site + sub + ' ')
+                    #raw_input (string_dict_nodes[my_sub_nodes[num_nodes]])
                     #string_dict_nodes[my_sub_nodes[num_nodes]].append(hxb2_site)
                     #string_dict_nodes[my_sub_nodes[num_nodes]].append(sub)
                     #string_dict_nodes[my_sub_nodes[num_nodes]].append('_')
                 #write alignments to the files
-                raw_input(string_dict_nodes)
-                aligned_asr_file.write('>' + my_sub_nodes[num_nodes] + '\n' + arr_hxb2_seq_range[4] + '\n')
-                hxb2_aligned_file.write('>' + my_sub_nodes[num_nodes] + " " +  arr_hxb2_seq_range[0] + '-' +  arr_hxb2_seq_range[1] + '\n' + arr_hxb2_seq_range[5] + '\n')
+                #print(string_dict_nodes)
+                    aligned_asr_file.write('>' + my_sub_nodes[num_nodes] + '\n' + arr_hxb2_seq_range[4] + '\n')
+                    hxb2_aligned_file.write('>' + my_sub_nodes[num_nodes] + " " +  arr_hxb2_seq_range[0] + '-' +  arr_hxb2_seq_range[1] + '\n' + arr_hxb2_seq_range[5] + '\n')
                 
 #                string_dict_nodes[my_sub_nodes[num_nodes]] = ''.join(string_dict_nodes[my_sub_nodes[num_nodes]])
                 #print  string_dict_nodes[my_sub_nodes[num_nodes]]
@@ -319,7 +335,7 @@ if __name__ == "__main__":
 ############## UNCOMMENT THIS BLOCK IF SOMETHING GOES WRONG ##############
     #raw_input(nodes_list)
     #i = 0
-    nodes_list.sort() UNCOMMENT THIS LINE IF YOU NEED TO GO BACK
+    nodes_list.sort() #UNCOMMENT THIS LINE IF YOU NEED TO GO BACK
     #order the nodes 
     #ordered = collections.OrderedDict(sorted(string_dict_nodes.items()))
 ##########################################################################
@@ -329,6 +345,7 @@ if __name__ == "__main__":
 ####################### NEW BLOCK OF UPDATES #####################
     multi_occur_dict = co_occur_dict_gen(string_dict_nodes) #call to 
     list_of_keys = multi_occur_dict.keys()
+    #raw_input(multi_occur_dict)
     flag = 0 #this is the flag for the is match function
     for cur_node in nodes_list:
      
@@ -339,7 +356,7 @@ if __name__ == "__main__":
         #if cur_node in string_dict_nodes: #if substitutions in the node were found through the map then create that string from the values 
         if cur_node in multi_occur_dict: 
             #newick_node = ''.join(string_dict_nodes[cur_node])
-            newick_node = ' '.join(multi_occur_dict[cur_node])
+            newick_node = ''.join(multi_occur_dict[cur_node])
         #reads string in reverse to match current node from list of nodes
         #with the string in newick tree format
         
