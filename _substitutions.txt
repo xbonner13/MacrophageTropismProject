@@ -1,1 +1,0 @@
-Node	Amino Acid Reference	Amino Acid Change	HXB2 Site Number	% sequence match

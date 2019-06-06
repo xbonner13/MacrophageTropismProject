@@ -137,6 +137,53 @@ def hxb2_amino_converter(nuc_num, hxb2_start, hxb2_sequence):
     hxb2_amino_site = int(math.ceil(hxb2_nuc_site/3.0))
     return str(hxb2_amino_site)
 
+#this function finds all the mutations that occur only once throughout the substituion tree
+def single_mutant_dict_gen(full_list):
+    
+    sing_mut_dict = {}
+    arr = []
+    nodes = full_list.keys()
+    for i in range(len(nodes)):
+        vals = full_list[nodes[i]]
+    #    print vals
+        for  j in range(len(vals)):
+            arr.append(vals[j])
+    #print arr
+    uniq = []
+    temp = arr
+    for i in range(len(arr)):
+        #print(arr[i])
+        #print i
+        cur_mut = arr[i]
+    #    raw_input(cur_mut)
+        temp[i] = 'Flag'
+    #    raw_input(temp)
+        if cur_mut not in temp:
+            uniq.append(cur_mut)
+    #        print 'THere is a unique thing here'
+        temp[i] = cur_mut
+#    print temp
+   # print uniq
+    for i in range(len(uniq)):
+#        print i
+    #    raw_input(uniq[i])
+        for j in range(len(nodes)):
+#            print full_list[nodes[j]]
+     #       raw_input()
+     #       raw_input(uniq[i])
+            if uniq[i] in full_list[nodes[j]]:
+                if nodes[j] not in sing_mut_dict:
+                    sing_mut_dict[nodes[j]] = [uniq[i]]
+                else:
+                    sing_mut_dict[nodes[j]].append(uniq[i])
+    #print sing_mut_dict
+    return sing_mut_dict
+
+            
+
+
+#this funtion finds the mutations that occur more than once throughout the substituion map multiple times
+#TEST: PASSES ALL TEST
 def co_occur_dict_gen(dict):
     multi_subs_dict = {}
     #print dict                                                                                                                                       
@@ -199,7 +246,24 @@ def find_changes(ref_codon, sub_codon):
         arr.append(2)
     return arr
 
+def non_synon_dict_gen(this_dict):
+    keys = this_dict.keys()
+    non_synon_nodes = {}
+    for i in range(len(keys)):
+        cur_key = keys[i]
+        for j in range(len(this_dict[cur_key])):
 
+            if this_dict[cur_key][j][0] != this_dict[cur_key][j][len(this_dict[cur_key][j]) - 2]:
+                if cur_key not in non_synon_nodes:
+                    non_synon_nodes[cur_key] = [this_dict[cur_key][j]]
+#                    raw_input('added new shit to the new key ' + cur_key)
+                else:
+#                    raw_input(non_synon_nodes[cur_key])
+#                    raw_input(non_synon_nodes)
+                    non_synon_nodes[cur_key].append(this_dict[cur_key][j])
+#                    raw_input('added new shit to the old key ' + cur_key)
+#    raw_input(non_synon_nodes)
+    return non_synon_nodes
 #TODO: function to handle if there are insertions in the hxb2 site that are at sergei's reported site
 if __name__ == "__main__":
     #os.system('module load muscle')
@@ -211,7 +275,8 @@ if __name__ == "__main__":
     #pause = raw_input()
     #output file generation
     asr_fname = sys.argv[1].split('.')[0] + "_ancestral_seq.fas"
-    outf_name = sys.argv[1].split('.')[0] + ".tree"
+    outf_name = sys.argv[1].split('.')[0] + "multiple.tree"
+    outf_single_name = sys.argv[1].split('.')[0] + "single.tree"
     muscle_outfile = sys.argv[1].split('.')[0] + "_muscle_aligned.fas"
     subs_all_file = sys.argv[1].split('.')[0] + "_substitutions.txt"
     hxb2_out_file = sys.argv[1].split('.')[0] + "_hxb2_sequences.fas"
@@ -343,8 +408,16 @@ if __name__ == "__main__":
     char_tree = list(tree)
     counter  = len(char_tree) - 1
 ####################### NEW BLOCK OF UPDATES #####################
-    multi_occur_dict = co_occur_dict_gen(string_dict_nodes) #call to 
+    #get rid of synonymous mutations
+    no_synon_mutant =  non_synon_dict_gen(string_dict_nodes)
+    #raw_input(no_synon_mutant)
+    singl_occur_dict = single_mutant_dict_gen(no_synon_mutant)
+    multi_occur_dict = co_occur_dict_gen(no_synon_mutant) #call to 
+    
+ #   raw_input(singl_occur_dict)
+
     list_of_keys = multi_occur_dict.keys()
+    list_of_sing_keys = singl_occur_dict.keys()
     #raw_input(multi_occur_dict)
     flag = 0 #this is the flag for the is match function
     for cur_node in nodes_list:
@@ -397,15 +470,67 @@ if __name__ == "__main__":
             flag = 0
             counter = len(char_tree) - 1
 
-    #write the new newick string to the file
-    with open(outf_name, 'w+') as f:                                                                                                       
+#write the new newick string to the file                                                                                                                                                                                            
+    with open(outf_name, 'w+') as f:
         for char_item in char_tree:
             f.write('%s' % char_item )
-    json_file.close()
+    #json_file.close()
     f.close()
+
+    flag = 0
+    counter = len(char_tree) - 1
+    char_tree = list(tree)
+    for cur_node in nodes_list:
+        if cur_node in singl_occur_dict:
+            newick_node = ''.join(singl_occur_dict[cur_node])
+#############PICK UP HERE #######################                                                                                                                                                                                      
+    
+        #pause = raw_input()                                                                                                                                                                                                    
+    
+            while (counter > 4 and flag == 0):
+            #print "im inside the while loop rn..."                                                                                                                                                                               
+            #print("this is the value of flag..." + str(flag))                                                                                                                                                                        
+                list_cur_node = list(cur_node)
+            #print ('before the if statement that looks at node number')                                                                                                                                                         
+                if char_tree[counter] == list_cur_node[len(list_cur_node) - 1]:
+
+                    #if the nodes are the same then switch out the strings                                                                                                                                                       
+                    if is_match(char_tree[(counter - (len(list_cur_node) -1)): (counter + 1)], list_cur_node) and char_tree[counter + 1] == ':':
+#                    print char_tree[counter+ 1]                                                                                                                                                                                       
+ 
+#                    print("match has been found")                                                                                                                                                                                 
+#                    pause = raw_input()                                                                                                                                                                                               
+                        flag = 1
+                        char_tree[(counter - (len(list_cur_node) -1))] = newick_node
+                    #char_tree[(counter - (len(list_cur_node))): (counter + 1)]                                                                                                                                                        
+                        char_tree[(counter + 2) - (len(list_cur_node)): (counter + 1)] = ''
+#                    print char_tree[(counter - (len(list_cur_node) -1)): (counter + 1)]                                                                                                                                         
+       
+#                    print ("flag is true..." + str(flag))                                                                                                                                                                    
+                #pause = raw_input()                                                                                                                                                                                
+                #print char_tree[(counter - (len(list_cur_node) -1)): (counter + 1)]                                                                                                                                              
+    
+                #pause = raw_input()                                                                                                                                                                                               
+                counter = counter - 1
+                #print "this is the counter..." + str(counter)                                                                                                                                                                      
+                #print "this is the value of flag..." + str(flag)                                                                                                                                                                 
+    
+
+            #pause = raw_input()                                                                                                                                                                                 
+            #print "this is the END of the finding the node in the newick tree..."                                                                                                                                                 
+            flag = 0
+            counter = len(char_tree) - 1
+
+    #write the new newick string to the file
+    with open(outf_single_name, 'w+') as o_single_f:                                                                                                       
+        for char_item in char_tree:
+            o_single_f.write('%s' % char_item )
+    json_file.close()
+    o_single_f.close()
 
     os.system('mv ' + asr_fname + ' ' + dir)
     os.system('mv ' + outf_name + ' ' + dir)
     os.system('mv ' + muscle_outfile + ' ' + dir)
     os.system('mv ' + subs_all_file + ' ' + dir)
     os.system('mv ' + hxb2_out_file + ' ' + dir)
+    os.system('mv ' + outf_single_name + ' ' + dir)
