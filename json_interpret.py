@@ -459,3 +459,4 @@ if __name__ == "__main__":
     os.system('mv ' + hxb2_out_file + ' ' + dir)
     os.system('mv ' + outf_single_name + ' ' + dir)
     os.system('mv ' + original_tree + ' ' + dir)
+    os.system('mv ' + errors + ' ' + dir)
